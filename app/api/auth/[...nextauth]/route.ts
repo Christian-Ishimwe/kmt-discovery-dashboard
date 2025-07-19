@@ -1,7 +1,6 @@
 import NextAuth from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
-import dotenv from "dotenv"
-dotenv.config()
+// @ts-ignore
 const handler = NextAuth({
   providers: [
     CredentialsProvider({
@@ -14,7 +13,7 @@ const handler = NextAuth({
         try {
           if (!credentials?.email || !credentials?.password) return null;
 
-          const res = await fetch(`${process.env.API_URL}/auth/login`, {
+          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -47,7 +46,7 @@ const handler = NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user } : any) {
       if (user) {
         token.id = user.id;
         token.email = user.email;
@@ -57,7 +56,7 @@ const handler = NextAuth({
       }
       return token;
     },
-    async session({ session, token }) {
+    async session({ session, token }: any) {
       if (token && session.user) {
         session.user.id = token.id;
         session.user.email = token.email;
