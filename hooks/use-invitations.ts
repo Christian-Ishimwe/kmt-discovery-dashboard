@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useSession } from "next-auth/react"
 import {
   type Invitation,
   type InvitationResponse,
@@ -28,112 +29,48 @@ export function useInvitations(params: UseInvitationsParams = {}) {
     totalPages: 0,
   })
   const { toast } = useToast()
+  const { data: session } = useSession()
+
+  // Get auth token from NextAuth session
+  const getAuthHeaders = useCallback(() => {
+    const sessionWithToken = session as any
+    return {
+      'Content-Type': 'application/json',
+      ...(sessionWithToken?.accessToken && { 'Authorization': `Bearer ${sessionWithToken.accessToken}` })
+    }
+  }, [session])
 
   const fetchInvitations = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
 
-      // For demo purposes, we'll simulate the API response
-      // In production, replace this with actual API call
-      const mockResponse: InvitationResponse = {
-        invitations: [
-          {
-            id: "1",
-            email: "john.doe@example.com",
-            token: "token-123",
-            role: UserRoleType.EXPERT,
-            invitedBy: "admin-1",
-            inviter: {
-              id: "admin-1",
-              firstName: "Admin",
-              lastName: "User",
-              email: "admin@kmtdiscovery.rw",
-            },
-            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-            createdAt: new Date().toISOString(),
-          },
-          {
-            id: "2",
-            email: "jane.smith@example.com",
-            token: "token-456",
-            role: UserRoleType.RESEARCHER,
-            invitedBy: "admin-1",
-            inviter: {
-              id: "admin-1",
-              firstName: "Admin",
-              lastName: "User",
-              email: "admin@kmtdiscovery.rw",
-            },
-            expiresAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
-            acceptedAt: new Date().toISOString(),
-            createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-          },
-          {
-            id: "3",
-            email: "expired@example.com",
-            token: "token-789",
-            role: UserRoleType.GUIDE,
-            invitedBy: "admin-1",
-            inviter: {
-              id: "admin-1",
-              firstName: "Admin",
-              lastName: "User",
-              email: "admin@kmtdiscovery.rw",
-            },
-            expiresAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-            createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-          },
-        ],
-        total: 3,
-        page: params.page || 1,
-        limit: params.limit || 10,
-        totalPages: 1,
-      }
+      // Build query parameters
+      const searchParams = new URLSearchParams()
+      if (params.page) searchParams.append('page', params.page.toString())
+      if (params.limit) searchParams.append('limit', params.limit.toString())
+      if (params.search) searchParams.append('search', params.search)
+      if (params.status && params.status !== 'all') searchParams.append('status', params.status)
+      if (params.role && params.role !== 'all') searchParams.append('role', params.role)
 
-      // Apply filters
-      let filteredInvitations = mockResponse.invitations
-
-      if (params.search) {
-        filteredInvitations = filteredInvitations.filter(
-          (inv) =>
-            inv.email.toLowerCase().includes(params.search!.toLowerCase()) ||
-            inv.role.toLowerCase().includes(params.search!.toLowerCase()),
-        )
-      }
-
-      if (params.status && params.status !== "all") {
-        filteredInvitations = filteredInvitations.filter((inv) => {
-          const now = new Date()
-          const expiresAt = new Date(inv.expiresAt)
-
-          switch (params.status) {
-            case "accepted":
-              return !!inv.acceptedAt
-            case "expired":
-              return !inv.acceptedAt && expiresAt < now
-            case "pending":
-              return !inv.acceptedAt && expiresAt >= now
-            default:
-              return true
-          }
-        })
-      }
-
-      if (params.role && params.role !== "all") {
-        filteredInvitations = filteredInvitations.filter((inv) => inv.role === params.role)
-      }
-
-      setInvitations(filteredInvitations)
-      setPagination({
-        total: filteredInvitations.length,
-        page: params.page || 1,
-        limit: params.limit || 10,
-        totalPages: Math.ceil(filteredInvitations.length / (params.limit || 10)),
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/invitations?${searchParams.toString()}`, {
+        method: 'GET',
+        headers: getAuthHeaders(),
       })
 
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      if (!response.ok) {
+        throw new Error(`Failed to fetch invitations: ${response.statusText}`)
+      }
+
+      const data: InvitationResponse = await response.json()
+      
+      setInvitations(data.invitations)
+      setPagination({
+        total: data.total,
+        page: data.page,
+        limit: data.limit,
+        totalPages: data.totalPages,
+      })
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to fetch invitations"
       setError(errorMessage)
@@ -145,28 +82,29 @@ export function useInvitations(params: UseInvitationsParams = {}) {
     } finally {
       setLoading(false)
     }
-  }, [params, toast])
+  }, [
+    params.page, 
+    params.limit, 
+    params.search, 
+    params.status, 
+    params.role, 
+    getAuthHeaders, 
+    toast
+  ])
 
-  const sendInvitation = async (data: CreateInvitationRequest) => {
+  const sendInvitation = useCallback(async (data: CreateInvitationRequest) => {
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/invitations`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(data),
+      })
 
-      const newInvitation: Invitation = {
-        id: Date.now().toString(),
-        email: data.email,
-        token: `token-${Date.now()}`,
-        role: data.role,
-        invitedBy: "admin-1",
-        inviter: {
-          id: "admin-1",
-          firstName: "Admin",
-          lastName: "User",
-          email: "admin@kmtdiscovery.rw",
-        },
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-        createdAt: new Date().toISOString(),
+      if (!response.ok) {
+        throw new Error(`Failed to send invitation: ${response.statusText}`)
       }
+
+      const newInvitation: Invitation = await response.json()
 
       setInvitations((prev) => [newInvitation, ...prev])
 
@@ -185,12 +123,18 @@ export function useInvitations(params: UseInvitationsParams = {}) {
       })
       throw err
     }
-  }
+  }, [getAuthHeaders, toast])
 
-  const revokeInvitation = async (id: string) => {
+  const revokeInvitation = useCallback(async (id: string) => {
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 500))
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/invitations/${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+      })
+
+      if (!response.ok) {
+        throw new Error(`Failed to revoke invitation: ${response.statusText}`)
+      }
 
       setInvitations((prev) => prev.filter((inv) => inv.id !== id))
 
@@ -207,7 +151,7 @@ export function useInvitations(params: UseInvitationsParams = {}) {
       })
       throw err
     }
-  }
+  }, [getAuthHeaders, toast])
 
   useEffect(() => {
     fetchInvitations()

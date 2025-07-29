@@ -7,11 +7,14 @@ import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
-  TrendingUp,
   Users,
+  Calendar,
+  FileText,
+  CreditCard,
+  BarChart3,
+  Bell,
   Settings,
   LogOut,
-  Bell,
   Search,
   Mail,
 } from "lucide-react";
@@ -23,9 +26,13 @@ import { useToast } from "@/hooks/use-toast";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Opportunities", href: "/dashboard/opportunities", icon: TrendingUp },
-  { name: "Network", href: "/dashboard/network", icon: Users },
+  { name: "User Management", href: "/dashboard/users", icon: Users },
   { name: "Invitations", href: "/dashboard/invitations", icon: Mail },
+  { name: "Bookings", href: "/dashboard/bookings", icon: Calendar },
+  { name: "Content", href: "/dashboard/content", icon: FileText },
+  { name: "Payments", href: "/dashboard/payments", icon: CreditCard },
+  { name: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
+  { name: "Notifications", href: "/dashboard/notifications", icon: Bell },
   { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
@@ -55,7 +62,7 @@ export default function DashboardLayout({
       <div className="min-h-screen bg-gray-50">
         {/* Header */}
         <Suspense fallback={<div>Loading...</div>}>
-          <header className="bg-white shadow-sm border-b">
+          <header className="fixed top-0 left-0 right-0 bg-white shadow-sm border-b z-10">
             <div className="px-6 py-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
@@ -83,8 +90,9 @@ export default function DashboardLayout({
                       </p>
                       <p className="text-xs text-gray-500">
                         {
-                        //@ts-ignore
-                        session?.user?.role}
+                          //@ts-ignore
+                          session?.user?.role
+                        }
                       </p>
                     </div>
                     <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
@@ -110,7 +118,7 @@ export default function DashboardLayout({
 
         <div className="flex">
           {/* Sidebar */}
-          <nav className="w-64 bg-white shadow-sm min-h-screen">
+          <nav className="fixed left-0 top-0 w-64 bg-white shadow-sm h-screen overflow-y-auto pt-20">
             <div className="p-6">
               <ul className="space-y-2">
                 {navigation.map((item) => {
@@ -136,7 +144,7 @@ export default function DashboardLayout({
           </nav>
 
           {/* Main Content */}
-          <main className="flex-1 p-6">{children}</main>
+          <main className="flex-1 ml-64 p-6 pt-24">{children}</main>
         </div>
       </div>
     </ProtectedRoute>
