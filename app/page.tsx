@@ -1,94 +1,96 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { signIn } from "next-auth/react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
-import { useToast } from "@/hooks/use-toast"
-import { MapPin, TrendingUp, Users, Loader2 } from "lucide-react"
-
-const DEMO_ACCOUNTS = [
-  { name: "Kwame Asante", role: "Admin", email: "admin@kmtdiscovery.rw" },
-  { name: "Amara Diallo", role: "Editor", email: "editor@kmtdiscovery.rw" },
-  { name: "Jean-Baptiste", role: "Country Manager", email: "manager@kmtdiscovery.rw" },
-  { name: "Fatima Al-Zahra", role: "Investor", email: "investor@kmtdiscovery.rw" },
-  { name: "Michael Thompson", role: "Tourist", email: "tourist@kmtdiscovery.rw" },
-]
+import { useState } from "react";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useToast } from "@/hooks/use-toast";
+import {
+  MapPin,
+  Mountain,
+  Leaf,
+  Users,
+  Loader2,
+  Eye,
+  EyeOff,
+  Landmark,
+  GraduationCap,
+  Building,
+  Palette,
+} from "lucide-react";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [rememberMe, setRememberMe] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const { toast } = useToast()
-  const router = useRouter()
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+    e.preventDefault();
+    setIsLoading(true);
 
     try {
       const result = await signIn("credentials", {
         email,
         password,
         redirect: false,
-      })
+      });
 
       if (result?.error) {
-        let errorMessage = "Login failed. Please try again."
+        let errorMessage =
+          "Login failed. Please check your credentials and try again.";
 
         if (result.error === "CredentialsSignin") {
-          errorMessage = "Invalid email or password. Use 'password123' for demo accounts."
+          errorMessage =
+            "Invalid email or password. Please verify your credentials.";
         }
 
         toast({
           variant: "destructive",
           title: "Login Failed",
           description: errorMessage,
-        })
+        });
       } else if (result?.ok) {
         toast({
           title: "Welcome back!",
           description: "You have successfully signed in.",
-        })
+        });
 
         // Wait a moment for the session to be set
         setTimeout(() => {
-          router.push("/dashboard")
-          router.refresh()
-        }, 100)
+          router.push("/dashboard");
+          router.refresh();
+        }, 100);
       }
     } catch (error) {
-      console.error("Login error:", error)
+      console.error("Login error:", error);
       toast({
         variant: "destructive",
         title: "Login Failed",
         description: "An unexpected error occurred. Please try again.",
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
-
-  const handleDemoAccountClick = (demoEmail: string) => {
-    setEmail(demoEmail)
-    setPassword("password123")
-  }
+  };
 
   return (
     <div className="min-h-screen flex">
       {/* Left Side - Brand Section */}
-      <div className="flex-1 bg-gradient-to-br from-red-500 via-red-600 to-red-700 relative overflow-hidden">
-        {/* Africa silhouette background */}
+      <div className="flex-1 bg-gradient-to-br from-green-600 via-blue-600 to-yellow-500 relative overflow-hidden">
+        {/* Rwanda silhouette background */}
         <div className="absolute inset-0 opacity-20">
           <svg viewBox="0 0 400 600" className="w-full h-full">
             <path
-              d="M200 50C180 60 160 80 150 100C140 120 130 140 120 160C110 180 100 200 95 220C90 240 85 260 90 280C95 300 105 320 115 340C125 360 135 380 145 400C155 420 165 440 175 460C185 480 195 500 205 520C215 540 225 560 235 580C245 600 255 620 265 600C275 580 285 560 295 540C305 520 315 500 325 480C335 460 345 440 355 420C365 400 375 380 385 360C395 340 405 320 400 300C395 280 390 260 385 240C380 220 375 200 370 180C365 160 360 140 350 120C340 100 330 80 320 60C310 40 300 20 280 30C260 40 240 50 220 50C210 50 205 50 200 50Z"
+              d="M180 80C170 90 160 100 155 115C150 130 145 145 140 160C135 175 130 190 125 205C120 220 118 235 120 250C122 265 126 280 130 295C134 310 138 325 142 340C146 355 150 370 155 385C160 400 165 415 172 430C179 445 186 460 194 475C202 490 210 505 220 518C230 531 240 544 252 555C264 566 276 575 288 582C300 589 312 594 324 597C336 600 348 601 360 600C372 599 384 596 396 591C408 586 420 579 430 570C440 561 448 550 454 538C460 526 464 513 466 500C468 487 468 474 466 461C464 448 460 435 454 423C448 411 440 400 430 390C420 380 408 372 396 365C384 358 372 352 360 347C348 342 336 338 324 335C312 332 300 330 288 329C276 328 264 328 252 329C240 330 228 332 216 335C204 338 192 342 180 347C168 352 156 358 146 366C136 374 128 384 122 395C116 406 112 418 110 430C108 442 108 454 110 466C112 478 116 490 122 501C128 512 136 522 146 530C156 538 168 544 180 548C192 552 204 554 216 555C228 556 240 556 252 555C264 554 276 552 288 548C300 544 312 538 324 530C336 522 348 512 358 500C368 488 376 474 382 459C388 444 392 428 394 412C396 396 396 380 394 364C392 348 388 332 382 317C376 302 368 288 358 276C348 264 336 254 324 246C312 238 300 232 288 228C276 224 264 222 252 222C240 222 228 224 216 228C204 232 192 238 180 246C168 254 156 264 146 276C136 288 128 302 122 317C116 332 112 348 110 364C108 380 108 396 110 412C112 428 116 444 122 459C128 474 136 488 146 500C156 512 168 522 180 530"
               fill="currentColor"
             />
           </svg>
@@ -97,30 +99,49 @@ export default function LoginPage() {
         <div className="relative z-10 p-12 text-white h-full flex flex-col justify-center">
           <div className="max-w-md">
             <h1 className="text-4xl font-bold mb-4">KMT Discovery</h1>
-            <p className="text-xl mb-12 opacity-90">Bridging Africa's Potential with Global Opportunities</p>
+            <p className="text-xl mb-12 opacity-90">
+              Discover Rwanda's rich heritage, vibrant culture, and incredible
+              tourism opportunities
+            </p>
 
             <div className="space-y-8">
               <div className="flex items-start space-x-4">
-                <MapPin className="w-6 h-6 mt-1 flex-shrink-0" />
+                <Landmark className="w-6 h-6 mt-1 flex-shrink-0" />
                 <div>
-                  <h3 className="font-semibold text-lg">Pan-African Reach</h3>
-                  <p className="opacity-80">Covering 54 countries across 11 key sectors</p>
+                  <h3 className="font-semibold text-lg">Cultural Heritage</h3>
+                  <p className="opacity-80">
+                    Explore Rwanda's rich history and traditions
+                  </p>
                 </div>
               </div>
 
               <div className="flex items-start space-x-4">
-                <TrendingUp className="w-6 h-6 mt-1 flex-shrink-0" />
+                <Mountain className="w-6 h-6 mt-1 flex-shrink-0" />
                 <div>
-                  <h3 className="font-semibold text-lg">Investment Opportunities</h3>
-                  <p className="opacity-80">Connect with verified opportunities</p>
+                  <h3 className="font-semibold text-lg">Tourism & Travel</h3>
+                  <p className="opacity-80">
+                    From Kigali's markets to Volcanoes National Park
+                  </p>
                 </div>
               </div>
 
               <div className="flex items-start space-x-4">
-                <Users className="w-6 h-6 mt-1 flex-shrink-0" />
+                <GraduationCap className="w-6 h-6 mt-1 flex-shrink-0" />
                 <div>
-                  <h3 className="font-semibold text-lg">Expert Network</h3>
-                  <p className="opacity-80">Access local expertise and insights</p>
+                  <h3 className="font-semibold text-lg">Education & Growth</h3>
+                  <p className="opacity-80">
+                    Access resources and opportunities
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-4">
+                <Leaf className="w-6 h-6 mt-1 flex-shrink-0" />
+                <div>
+                  <h3 className="font-semibold text-lg">Environment</h3>
+                  <p className="opacity-80">
+                    Rwanda's commitment to sustainability
+                  </p>
                 </div>
               </div>
             </div>
@@ -132,13 +153,20 @@ export default function LoginPage() {
       <div className="flex-1 bg-white flex items-center justify-center p-8">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome Back</h2>
-            <p className="text-gray-600">Sign in to access your KMT Discovery dashboard</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Welcome Back
+            </h2>
+            <p className="text-gray-600">
+              Sign in to access your KMT Discovery dashboard
+            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+              <Label
+                htmlFor="email"
+                className="text-sm font-medium text-gray-700"
+              >
                 Email
               </Label>
               <Input
@@ -153,19 +181,34 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+              <Label
+                htmlFor="password"
+                className="text-sm font-medium text-gray-700"
+              >
                 Password
               </Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
-                className="mt-1"
-                required
-              />
-              <p className="text-xs text-gray-500 mt-1">Demo password: password123</p>
+              <div className="mt-1 relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  className="pr-10"
+                  required
+                />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                  )}
+                </button>
+              </div>
             </div>
 
             <div className="flex items-center">
@@ -179,7 +222,11 @@ export default function LoginPage() {
               </Label>
             </div>
 
-            <Button type="submit" className="w-full bg-red-600 hover:bg-red-700 text-white" disabled={isLoading}>
+            <Button
+              type="submit"
+              className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white"
+              disabled={isLoading}
+            >
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -191,31 +238,16 @@ export default function LoginPage() {
             </Button>
 
             <div className="text-center">
-              <button type="button" className="text-sm text-red-600 hover:text-red-700">
+              <button
+                type="button"
+                className="text-sm text-green-600 hover:text-green-700"
+              >
                 Forgot your password?
               </button>
             </div>
           </form>
-
-          <div className="mt-8">
-            <h3 className="text-sm font-medium text-gray-700 mb-4">Demo Accounts (password: password123)</h3>
-            <div className="space-y-2">
-              {DEMO_ACCOUNTS.map((account, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleDemoAccountClick(account.email)}
-                  className="w-full text-left p-2 rounded border hover:bg-gray-50 transition-colors"
-                >
-                  <div className="font-medium text-sm text-gray-900">{account.name}</div>
-                  <div className="text-xs text-gray-500">
-                    {account.role} • {account.email}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
     </div>
-  )
+  );
 }

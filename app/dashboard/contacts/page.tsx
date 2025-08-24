@@ -203,13 +203,13 @@ export default function ContactsPage() {
 
           {/* Quick Actions */}
           <div className="mt-6 lg:mt-0 space-y-4 lg:space-y-0 lg:space-x-3 flex flex-col lg:flex-row">
-            <Button
+            {/* <Button
               variant="outline"
               className="border-indigo-200 text-indigo-600 hover:bg-indigo-50"
             >
               <Download className="w-4 h-4 mr-2" />
               Export Contacts
-            </Button>
+            </Button> */}
             <Button
               variant="outline"
               onClick={handleRefresh}
