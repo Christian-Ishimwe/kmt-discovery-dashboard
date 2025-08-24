@@ -2,8 +2,7 @@ import dotenv from "dotenv"
 dotenv.config()
 export class ApiClient {
   private static async getAuthHeaders() {
-    // In a real app, you'd get the token from your auth system
-    // For now, we'll simulate it
+    
     return {
       Authorization: `Bearer ${process.env.NEXT_PUBLIC_API_TOKEN || "demo-token"}`,
       "Content-Type": "application/json",
@@ -60,4 +59,6 @@ export class ApiClient {
 
     return response.json()
   }
+
+  
 }

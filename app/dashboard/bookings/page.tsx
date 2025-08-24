@@ -30,173 +30,185 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Label } from "@/components/ui/label";
+import {
   Search,
-  Filter,
+  RefreshCw,
   MoreHorizontal,
   Calendar,
   Download,
   Clock,
   CheckCircle,
-  XCircle,
   DollarSign,
-  User,
-  MapPin,
+  Edit2,
+  Trash2,
+  Eye,
 } from "lucide-react";
-
-// Mock booking data
-const bookings = [
-  {
-    id: "BK001",
-    clientName: "Kwame Asante",
-    clientEmail: "kwame.asante@email.com",
-    clientAvatar: "/placeholder-user.jpg",
-    consultantName: "Dr. Sarah Mbeki",
-    consultantSpecialty: "Tourism Development",
-    date: "2024-07-30",
-    time: "10:00 AM",
-    duration: "60 min",
-    status: "Confirmed",
-    paymentStatus: "Paid",
-    amount: "$150",
-    type: "Tourism Consultation",
-    location: "Virtual",
-    country: "Ghana",
-  },
-  {
-    id: "BK002",
-    clientName: "Amina Hassan",
-    clientEmail: "amina.hassan@email.com",
-    clientAvatar: "/placeholder-user.jpg",
-    consultantName: "Prof. James Okonkwo",
-    consultantSpecialty: "Investment Strategy",
-    date: "2024-07-30",
-    time: "2:00 PM",
-    duration: "90 min",
-    status: "Confirmed",
-    paymentStatus: "Paid",
-    amount: "$300",
-    type: "Investment Consultation",
-    location: "Nairobi Office",
-    country: "Kenya",
-  },
-  {
-    id: "BK003",
-    clientName: "Jean-Baptiste Mukama",
-    clientEmail: "jb.mukama@email.com",
-    clientAvatar: "/placeholder-user.jpg",
-    consultantName: "Dr. Fatima Al-Rashid",
-    consultantSpecialty: "Cultural Heritage",
-    date: "2024-07-31",
-    time: "11:30 AM",
-    duration: "45 min",
-    status: "Pending",
-    paymentStatus: "Pending",
-    amount: "$120",
-    type: "Cultural Consultation",
-    location: "Virtual",
-    country: "Rwanda",
-  },
-  {
-    id: "BK004",
-    clientName: "Michael Thompson",
-    clientEmail: "michael.thompson@email.com",
-    clientAvatar: "/placeholder-user.jpg",
-    consultantName: "Dr. Aisha Diallo",
-    consultantSpecialty: "Infrastructure Development",
-    date: "2024-08-01",
-    time: "9:00 AM",
-    duration: "120 min",
-    status: "Confirmed",
-    paymentStatus: "Paid",
-    amount: "$450",
-    type: "Infrastructure Consultation",
-    location: "Cape Town Office",
-    country: "South Africa",
-  },
-  {
-    id: "BK005",
-    clientName: "Mariam Kone",
-    clientEmail: "mariam.kone@email.com",
-    clientAvatar: "/placeholder-user.jpg",
-    consultantName: "Prof. David Okello",
-    consultantSpecialty: "Economic Policy",
-    date: "2024-08-02",
-    time: "3:00 PM",
-    duration: "60 min",
-    status: "Cancelled",
-    paymentStatus: "Refunded",
-    amount: "$200",
-    type: "Policy Consultation",
-    location: "Virtual",
-    country: "Mali",
-  },
-  {
-    id: "BK006",
-    clientName: "Fatima Al-Zahra",
-    clientEmail: "fatima.alzahra@email.com",
-    clientAvatar: "/placeholder-user.jpg",
-    consultantName: "Dr. Samuel Nyong",
-    consultantSpecialty: "Education Development",
-    date: "2024-08-03",
-    time: "1:00 PM",
-    duration: "60 min",
-    status: "Pending",
-    paymentStatus: "Pending",
-    amount: "$100",
-    type: "Education Consultation",
-    location: "Virtual",
-    country: "Morocco",
-  },
-];
+import { useBookings } from "@/hooks/use-bookings";
+import { useToast } from "@/hooks/use-toast";
 
 const statusColors = {
-  Confirmed: "bg-green-100 text-green-800",
-  Pending: "bg-yellow-100 text-yellow-800",
-  Cancelled: "bg-red-100 text-red-800",
-  Completed: "bg-blue-100 text-blue-800",
+  CONFIRMED: "bg-green-100 text-green-800",
+  PENDING: "bg-yellow-100 text-yellow-800",
+  CANCELLED: "bg-red-100 text-red-800",
+  COMPLETED: "bg-blue-100 text-blue-800",
 };
 
 const paymentStatusColors = {
-  Paid: "bg-green-100 text-green-800",
-  Pending: "bg-yellow-100 text-yellow-800",
-  Failed: "bg-red-100 text-red-800",
-  Refunded: "bg-gray-100 text-gray-800",
+  COMPLETED: "bg-green-100 text-green-800",
+  PENDING: "bg-yellow-100 text-yellow-800",
+  FAILED: "bg-red-100 text-red-800",
+  REFUNDED: "bg-gray-100 text-gray-800",
+};
+
+const categoryColors = {
+  SPORTS: "bg-orange-100 text-orange-800",
+  ENVIRONMENT: "bg-green-100 text-green-800",
+  CULTURE: "bg-purple-100 text-purple-800",
+  BUSINESS: "bg-blue-100 text-blue-800",
+  EDUCATION: "bg-indigo-100 text-indigo-800",
+};
+
+const bookingTypeColors = {
+  SITE_VISIT: "bg-cyan-100 text-cyan-800",
+  EXPERT: "bg-violet-100 text-violet-800",
+  CONSULTATION: "bg-pink-100 text-pink-800",
 };
 
 export default function BookingsPage() {
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedPaymentStatus, setSelectedPaymentStatus] = useState("all");
-  const [selectedType, setSelectedType] = useState("all");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedBookingType, setSelectedBookingType] = useState("all");
+  const [editingBooking, setEditingBooking] = useState<any>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [viewingBooking, setViewingBooking] = useState<any>(null);
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+  const [deletingBookingId, setDeletingBookingId] = useState<string | null>(
+    null
+  );
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-  const filteredBookings = bookings.filter((booking) => {
-    const matchesSearch =
-      booking.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking.consultantName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking.id.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus =
-      selectedStatus === "all" || booking.status === selectedStatus;
-    const matchesPaymentStatus =
-      selectedPaymentStatus === "all" ||
-      booking.paymentStatus === selectedPaymentStatus;
-    const matchesType = selectedType === "all" || booking.type === selectedType;
-
-    return (
-      matchesSearch && matchesStatus && matchesPaymentStatus && matchesType
-    );
+  const {
+    bookings,
+    allBookings,
+    loading,
+    error,
+    updateBooking,
+    deleteBooking,
+    refetch,
+    updatingBooking,
+    deletingBooking,
+  } = useBookings({
+    searchTerm,
+    status: selectedStatus === "all" ? undefined : selectedStatus,
+    paymentStatus:
+      selectedPaymentStatus === "all" ? undefined : selectedPaymentStatus,
+    category: selectedCategory === "all" ? undefined : selectedCategory,
+    bookingType:
+      selectedBookingType === "all" ? undefined : selectedBookingType,
   });
 
+  const handleEditBooking = (booking: any) => {
+    setEditingBooking(booking);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleViewBooking = (booking: any) => {
+    setViewingBooking(booking);
+    setIsDetailsDialogOpen(true);
+  };
+
+  const handleSaveBooking = async () => {
+    if (!editingBooking) return;
+
+    try {
+      await updateBooking(editingBooking.id, {
+        status: editingBooking.status,
+      });
+      setIsEditDialogOpen(false);
+      setEditingBooking(null);
+      toast({
+        title: "Booking Updated",
+        description: "Booking status has been updated successfully.",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Update Failed",
+        description: "Failed to update booking. Please try again.",
+      });
+    }
+  };
+
+  const handleDeleteBooking = (bookingId: string) => {
+    setDeletingBookingId(bookingId);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteBooking = async () => {
+    if (!deletingBookingId) return;
+
+    try {
+      await deleteBooking(deletingBookingId);
+      toast({
+        title: "Booking Deleted",
+        description: "Booking has been deleted successfully.",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Delete Failed",
+        description: "Failed to delete booking. Please try again.",
+      });
+    } finally {
+      setIsDeleteDialogOpen(false);
+      setDeletingBookingId(null);
+    }
+  };
+
+  const confirmedBookings = (allBookings || []).filter(
+    (booking) => booking.status === "CONFIRMED"
+  ).length;
+  const pendingBookings = (allBookings || []).filter(
+    (booking) => booking.status === "PENDING"
+  ).length;
+  const totalBookings = (allBookings || []).length;
+  const totalRevenue = (allBookings || [])
+    .filter((b) => b.payment.status === "COMPLETED")
+    .reduce((sum, b) => sum + b.payment.amount, 0);
+
   const uniqueStatuses = [
-    ...new Set(bookings.map((booking) => booking.status)),
+    ...new Set((allBookings || []).map((booking) => booking.status)),
   ];
   const uniquePaymentStatuses = [
-    ...new Set(bookings.map((booking) => booking.paymentStatus)),
+    ...new Set((allBookings || []).map((booking) => booking.payment.status)),
   ];
-  const uniqueTypes = [...new Set(bookings.map((booking) => booking.type))];
-
-  const totalRevenue = bookings
-    .filter((b) => b.paymentStatus === "Paid")
-    .reduce((sum, b) => sum + parseFloat(b.amount.replace("$", "")), 0);
+  const uniqueCategories = [
+    ...new Set((allBookings || []).map((booking) => booking.category)),
+  ];
+  const uniqueBookingTypes = [
+    ...new Set((allBookings || []).map((booking) => booking.bookingType)),
+  ];
 
   return (
     <div className="space-y-6">
@@ -213,141 +225,181 @@ export default function BookingsPage() {
         <div className="flex items-center space-x-3 mt-4 md:mt-0">
           <Button
             variant="outline"
-            className="border-red-200 text-red-600 hover:bg-red-50"
+            onClick={refetch}
+            disabled={loading}
+            className="border-red-200 text-red-600 hover:bg-red-50 bg-transparent"
+          >
+            <RefreshCw
+              className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`}
+            />
+            {loading ? "Refreshing..." : "Refresh"}
+          </Button>
+          {/* <Button
+            variant="outline"
+            className="border-red-200 text-red-600 hover:bg-red-50 bg-transparent"
           >
             <Download className="w-4 h-4 mr-2" />
             Export
-          </Button>
-          <Button className="bg-red-600 hover:bg-red-700 text-white">
+          </Button> */}
+          {/* <Button className="bg-red-600 hover:bg-red-700 text-white">
             <Calendar className="w-4 h-4 mr-2" />
             New Booking
-          </Button>
+          </Button> */}
         </div>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">
-                  Total Bookings
-                </p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {bookings.length}
-                </p>
-              </div>
-              <div className="p-3 rounded-full bg-red-50">
-                <Calendar className="w-6 h-6 text-red-600" />
-              </div>
-            </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Total Bookings
+            </CardTitle>
+            <Calendar className="w-4 h-4 text-gray-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalBookings}</div>
+            <p className="text-xs text-gray-600">All bookings</p>
           </CardContent>
         </Card>
+
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Confirmed</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {bookings.filter((b) => b.status === "Confirmed").length}
-                </p>
-              </div>
-              <div className="p-3 rounded-full bg-green-50">
-                <CheckCircle className="w-6 h-6 text-green-600" />
-              </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Confirmed</CardTitle>
+            <CheckCircle className="w-4 h-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">
+              {confirmedBookings}
             </div>
+            <p className="text-xs text-gray-600">Confirmed bookings</p>
           </CardContent>
         </Card>
+
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Pending</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {bookings.filter((b) => b.status === "Pending").length}
-                </p>
-              </div>
-              <div className="p-3 rounded-full bg-yellow-50">
-                <Clock className="w-6 h-6 text-yellow-600" />
-              </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pending</CardTitle>
+            <Clock className="w-4 h-4 text-yellow-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-yellow-600">
+              {pendingBookings}
             </div>
+            <p className="text-xs text-gray-600">Awaiting confirmation</p>
           </CardContent>
         </Card>
+
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Revenue</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  ${totalRevenue.toLocaleString()}
-                </p>
-              </div>
-              <div className="p-3 rounded-full bg-blue-50">
-                <DollarSign className="w-6 h-6 text-blue-600" />
-              </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Revenue</CardTitle>
+            <DollarSign className="w-4 h-4 text-blue-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">
+              ${totalRevenue.toLocaleString()}
             </div>
+            <p className="text-xs text-gray-600">Total revenue</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Filters */}
       <Card>
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row md:items-center space-y-4 md:space-y-0 md:space-x-4">
-            <div className="flex-1">
+        <CardHeader>
+          <CardTitle>Filters</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="search">Search Bookings</Label>
               <div className="relative">
-                <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
-                  placeholder="Search bookings..."
+                  id="search"
+                  placeholder="Search by ID, provider, or description..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
                 />
               </div>
             </div>
-            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-              <SelectTrigger className="w-full md:w-48">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                {uniqueStatuses.map((status) => (
-                  <SelectItem key={status} value={status}>
-                    {status}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select
-              value={selectedPaymentStatus}
-              onValueChange={setSelectedPaymentStatus}
-            >
-              <SelectTrigger className="w-full md:w-48">
-                <SelectValue placeholder="Payment status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Payment Status</SelectItem>
-                {uniquePaymentStatuses.map((status) => (
-                  <SelectItem key={status} value={status}>
-                    {status}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={selectedType} onValueChange={setSelectedType}>
-              <SelectTrigger className="w-full md:w-48">
-                <SelectValue placeholder="Filter by type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                {uniqueTypes.map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {type}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+
+            <div className="space-y-2">
+              <Label>Status</Label>
+              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All statuses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  {uniqueStatuses.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {status}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Payment Status</Label>
+              <Select
+                value={selectedPaymentStatus}
+                onValueChange={setSelectedPaymentStatus}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="All payment statuses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Payment Status</SelectItem>
+                  {uniquePaymentStatuses.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {status}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Category</Label>
+              <Select
+                value={selectedCategory}
+                onValueChange={setSelectedCategory}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="All categories" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {uniqueCategories.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Booking Type</Label>
+              <Select
+                value={selectedBookingType}
+                onValueChange={setSelectedBookingType}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="All types" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Types</SelectItem>
+                  {uniqueBookingTypes.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -355,134 +407,532 @@ export default function BookingsPage() {
       {/* Bookings Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Bookings ({filteredBookings.length})</CardTitle>
+          <CardTitle>
+            Bookings ({bookings?.length || 0})
+            {searchTerm ||
+            selectedStatus !== "all" ||
+            selectedPaymentStatus !== "all" ||
+            selectedCategory !== "all" ||
+            selectedBookingType !== "all"
+              ? ` of ${totalBookings} total`
+              : ""}
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Booking ID</TableHead>
-                  <TableHead>Client</TableHead>
-                  <TableHead>Consultant</TableHead>
-                  <TableHead>Date & Time</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Payment</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredBookings.map((booking) => (
-                  <TableRow key={booking.id} className="hover:bg-gray-50">
-                    <TableCell className="font-medium text-red-600">
-                      {booking.id}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-3">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src={booking.clientAvatar} />
-                          <AvatarFallback>
-                            {booking.clientName
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")}
-                          </AvatarFallback>
-                        </Avatar>
+          {loading ? (
+            <div className="text-center py-8">
+              <RefreshCw className="w-8 h-8 animate-spin mx-auto text-gray-400" />
+              <p className="text-gray-600 mt-2">Loading bookings...</p>
+            </div>
+          ) : error ? (
+            <div className="text-center py-8">
+              <p className="text-red-600">Error loading bookings: {error}</p>
+              <Button onClick={refetch} className="mt-2">
+                Try Again
+              </Button>
+            </div>
+          ) : !bookings || bookings.length === 0 ? (
+            <div className="text-center py-8">
+              <Calendar className="w-12 h-12 text-gray-400 mx-auto" />
+              <p className="text-gray-600 mt-2">No bookings found</p>
+              {searchTerm && (
+                <p className="text-sm text-gray-500">
+                  Try adjusting your search or filters
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Booking ID</TableHead>
+                    <TableHead>Provider</TableHead>
+                    <TableHead>Date & Time</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Payment</TableHead>
+                    <TableHead>Amount</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {bookings.map((booking) => (
+                    <TableRow key={booking.id} className="hover:bg-gray-50">
+                      <TableCell className="font-medium text-red-600">
+                        {booking.id.slice(0, 8)}...
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-3">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage
+                              src={
+                                booking.provider.avatarUrl || "/placeholder.svg"
+                              }
+                            />
+                            <AvatarFallback>
+                              {booking.provider.firstName[0]}
+                              {booking.provider.lastName[0]}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-medium text-gray-900">
+                              {booking.provider.firstName}{" "}
+                              {booking.provider.lastName}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              {booking.provider.email}
+                            </p>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
                         <div>
                           <p className="font-medium text-gray-900">
-                            {booking.clientName}
+                            {new Date(booking.date).toLocaleDateString()}
                           </p>
                           <p className="text-sm text-gray-500">
-                            {booking.country}
+                            {new Date(booking.startTime).toLocaleTimeString(
+                              [],
+                              {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              }
+                            )}
                           </p>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium text-gray-900">
-                          {booking.consultantName}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          {booking.consultantSpecialty}
-                        </p>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium text-gray-900">
-                          {booking.date}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          {booking.time} ({booking.duration})
-                        </p>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium text-gray-900">
-                          {booking.type}
-                        </p>
-                        <p className="text-sm text-gray-500 flex items-center">
-                          <MapPin className="w-3 h-3 mr-1" />
-                          {booking.location}
-                        </p>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        className={
-                          statusColors[
-                            booking.status as keyof typeof statusColors
-                          ]
-                        }
-                      >
-                        {booking.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        className={
-                          paymentStatusColors[
-                            booking.paymentStatus as keyof typeof paymentStatusColors
-                          ]
-                        }
-                      >
-                        {booking.paymentStatus}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="font-medium text-green-600">
-                      {booking.amount}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Open menu</span>
-                            <MoreHorizontal className="h-4 w-4" />
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          className={
+                            categoryColors[
+                              booking.category as keyof typeof categoryColors
+                            ] || "bg-gray-100 text-gray-800"
+                          }
+                        >
+                          {booking.category}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          className={
+                            bookingTypeColors[
+                              booking.bookingType as keyof typeof bookingTypeColors
+                            ] || "bg-gray-100 text-gray-800"
+                          }
+                        >
+                          {booking.bookingType}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          className={
+                            statusColors[
+                              booking.status as keyof typeof statusColors
+                            ] || "bg-gray-100 text-gray-800"
+                          }
+                        >
+                          {booking.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          className={
+                            paymentStatusColors[
+                              booking.payment
+                                .status as keyof typeof paymentStatusColors
+                            ] || "bg-gray-100 text-gray-800"
+                          }
+                        >
+                          {booking.payment.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-medium text-green-600">
+                        ${booking.payment.amount}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end space-x-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEditBooking(booking)}
+                            disabled={updatingBooking === booking.id}
+                          >
+                            <Edit2 className="w-4 h-4" />
                           </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem>View Details</DropdownMenuItem>
-                          <DropdownMenuItem>Edit Booking</DropdownMenuItem>
-                          <DropdownMenuItem>Contact Client</DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-red-600">
-                            Cancel Booking
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteBooking(booking.id)}
+                            disabled={deletingBooking === booking.id}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Open menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                              <DropdownMenuItem
+                                onClick={() => handleViewBooking(booking)}
+                              >
+                                <Eye className="w-4 h-4 mr-2" />
+                                View Details
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                Contact Provider
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem className="text-red-600">
+                                Cancel Booking
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </CardContent>
       </Card>
+
+      {/* Edit Booking Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Booking</DialogTitle>
+            <DialogDescription>Update booking status</DialogDescription>
+          </DialogHeader>
+          {editingBooking && (
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label>Booking</Label>
+                <div className="flex items-center space-x-3 p-2 bg-gray-50 rounded">
+                  <Avatar className="w-8 h-8">
+                    <AvatarImage
+                      src={
+                        editingBooking.provider.avatarUrl || "/placeholder.svg"
+                      }
+                    />
+                    <AvatarFallback>
+                      {editingBooking.provider.firstName[0]}
+                      {editingBooking.provider.lastName[0]}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <div className="font-medium">
+                      {editingBooking.provider.firstName}{" "}
+                      {editingBooking.provider.lastName}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      {editingBooking.id.slice(0, 8)}... •{" "}
+                      {editingBooking.category}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="status">Status</Label>
+                <Select
+                  value={editingBooking.status}
+                  onValueChange={(value) =>
+                    setEditingBooking({ ...editingBooking, status: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {uniqueStatuses.map((status) => (
+                      <SelectItem key={status} value={status}>
+                        {status}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsEditDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveBooking}
+              className="bg-red-600 hover:bg-red-700"
+              disabled={updatingBooking === editingBooking?.id}
+            >
+              {updatingBooking === editingBooking?.id
+                ? "Saving..."
+                : "Save Changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Booking Details Dialog */}
+      <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Booking Details</DialogTitle>
+            <DialogDescription>
+              Complete information about this booking
+            </DialogDescription>
+          </DialogHeader>
+          {viewingBooking && (
+            <div className="space-y-6 py-4">
+              {/* Booking Info */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-500">
+                    Booking ID
+                  </Label>
+                  <p className="font-mono text-sm">{viewingBooking.id}</p>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-500">
+                    Status
+                  </Label>
+                  <Badge
+                    className={
+                      statusColors[
+                        viewingBooking.status as keyof typeof statusColors
+                      ] || "bg-gray-100 text-gray-800"
+                    }
+                  >
+                    {viewingBooking.status}
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Provider Info */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-gray-500">
+                  Provider
+                </Label>
+                <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage
+                      src={
+                        viewingBooking.provider.avatarUrl || "/placeholder.svg"
+                      }
+                    />
+                    <AvatarFallback>
+                      {viewingBooking.provider.firstName[0]}
+                      {viewingBooking.provider.lastName[0]}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-medium">
+                      {viewingBooking.provider.firstName}{" "}
+                      {viewingBooking.provider.lastName}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {viewingBooking.provider.email}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Booking Details */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-500">
+                    Date & Time
+                  </Label>
+                  <div>
+                    <p className="font-medium">
+                      {new Date(viewingBooking.date).toLocaleDateString()}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {new Date(viewingBooking.startTime).toLocaleTimeString(
+                        [],
+                        {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        }
+                      )}
+                      {viewingBooking.endTime &&
+                        ` - ${new Date(
+                          viewingBooking.endTime
+                        ).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}`}
+                    </p>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-500">
+                    Location
+                  </Label>
+                  <p>{viewingBooking.location}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-500">
+                    Category
+                  </Label>
+                  <Badge
+                    className={
+                      categoryColors[
+                        viewingBooking.category as keyof typeof categoryColors
+                      ] || "bg-gray-100 text-gray-800"
+                    }
+                  >
+                    {viewingBooking.category}
+                  </Badge>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-500">
+                    Booking Type
+                  </Label>
+                  <Badge
+                    className={
+                      bookingTypeColors[
+                        viewingBooking.bookingType as keyof typeof bookingTypeColors
+                      ] || "bg-gray-100 text-gray-800"
+                    }
+                  >
+                    {viewingBooking.bookingType}
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Description */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-gray-500">
+                  Description
+                </Label>
+                <p className="text-sm bg-gray-50 p-3 rounded-lg">
+                  {viewingBooking.description}
+                </p>
+              </div>
+
+              {/* Payment Info */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-gray-500">
+                  Payment Information
+                </Label>
+                <div className="grid grid-cols-3 gap-4 p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <p className="text-sm font-medium">Amount</p>
+                    <p className="text-lg font-bold text-green-600">
+                      ${viewingBooking.payment.amount}{" "}
+                      {viewingBooking.payment.currency}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Status</p>
+                    <Badge
+                      className={
+                        paymentStatusColors[
+                          viewingBooking.payment
+                            .status as keyof typeof paymentStatusColors
+                        ] || "bg-gray-100 text-gray-800"
+                      }
+                    >
+                      {viewingBooking.payment.status}
+                    </Badge>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Transaction ID</p>
+                    <p className="text-sm font-mono">
+                      {viewingBooking.payment.transactionId || "N/A"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Requirements */}
+              {viewingBooking.requirements && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-500">
+                    Requirements
+                  </Label>
+                  <pre className="text-sm bg-gray-50 p-3 rounded-lg overflow-auto">
+                    {JSON.stringify(viewingBooking.requirements, null, 2)}
+                  </pre>
+                </div>
+              )}
+
+              {/* Timestamps */}
+              <div className="grid grid-cols-2 gap-4 text-xs text-gray-500">
+                <div>
+                  <p className="font-medium">Created</p>
+                  <p>{new Date(viewingBooking.createdAt).toLocaleString()}</p>
+                </div>
+                <div>
+                  <p className="font-medium">Last Updated</p>
+                  <p>{new Date(viewingBooking.updatedAt).toLocaleString()}</p>
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsDetailsDialogOpen(false)}
+            >
+              Close
+            </Button>
+            <Button
+              onClick={() => {
+                setIsDetailsDialogOpen(false);
+                handleEditBooking(viewingBooking);
+              }}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Edit Booking
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Booking</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this booking? This action cannot
+              be undone and will permanently remove the booking from the system.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeletingBookingId(null)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteBooking}
+              className="bg-red-600 hover:bg-red-700"
+              disabled={deletingBooking === deletingBookingId}
+            >
+              {deletingBooking === deletingBookingId
+                ? "Deleting..."
+                : "Delete Booking"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
