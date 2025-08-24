@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback, useMemo } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useSession } from "next-auth/react"
 import { useToast } from "@/hooks/use-toast"
 
@@ -49,6 +49,7 @@ interface UseBookingsParams {
 }
 
 export function useBookings(params: UseBookingsParams = {}) {
+  const [bookings, setBookings] = useState<Booking[]>([])
   const [allBookings, setAllBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
   const [updatingBooking, setUpdatingBooking] = useState<string | null>(null)
@@ -62,66 +63,6 @@ export function useBookings(params: UseBookingsParams = {}) {
   })
   const { toast } = useToast()
   const { data: session } = useSession()
-
-  // Filter and paginate bookings on frontend
-  const filteredBookings = useMemo(() => {
-    let filtered = allBookings
-
-    // Apply search filter
-    if (params.searchTerm) {
-      const searchLower = params.searchTerm.toLowerCase()
-      filtered = filtered.filter(
-        (booking) =>
-          booking.id.toLowerCase().includes(searchLower) ||
-          booking.provider.firstName.toLowerCase().includes(searchLower) ||
-          booking.provider.lastName.toLowerCase().includes(searchLower) ||
-          booking.provider.email.toLowerCase().includes(searchLower) ||
-          booking.description.toLowerCase().includes(searchLower),
-      )
-    }
-
-    // Apply status filter
-    if (params.status && params.status !== "all") {
-      filtered = filtered.filter((booking) => booking.status === params.status)
-    }
-
-    // Apply payment status filter
-    if (params.paymentStatus && params.paymentStatus !== "all") {
-      filtered = filtered.filter((booking) => booking.payment.status === params.paymentStatus)
-    }
-
-    // Apply category filter
-    if (params.category && params.category !== "all") {
-      filtered = filtered.filter((booking) => booking.category === params.category)
-    }
-
-    // Apply booking type filter
-    if (params.bookingType && params.bookingType !== "all") {
-      filtered = filtered.filter((booking) => booking.bookingType === params.bookingType)
-    }
-
-    return filtered
-  }, [allBookings, params.searchTerm, params.status, params.paymentStatus, params.category, params.bookingType])
-
-  // Paginate filtered results
-  const bookings = useMemo(() => {
-    const page = params.page || 1
-    const limit = params.limit || 10
-    const startIndex = (page - 1) * limit
-    const endIndex = startIndex + limit
-
-    const paginatedData = filteredBookings.slice(startIndex, endIndex)
-
-    // Update pagination state
-    setPagination({
-      total: filteredBookings.length,
-      page,
-      limit,
-      totalPages: Math.ceil(filteredBookings.length / limit),
-    })
-
-    return paginatedData
-  }, [filteredBookings, params.page, params.limit])
 
   // Get auth token from NextAuth session
   const getAuthHeaders = useCallback(() => {
@@ -137,7 +78,21 @@ export function useBookings(params: UseBookingsParams = {}) {
       setLoading(true)
       setError(null)
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/bookings`, {
+      // Build query parameters for backend filtering and pagination
+      const queryParams = new URLSearchParams({
+        page: (params.page || 1).toString(),
+        limit: (params.limit || 10).toString(),
+      })
+
+      if (params.status && params.status !== "all") {
+        queryParams.append("status", params.status)
+      }
+
+      if (params.bookingType && params.bookingType !== "all") {
+        queryParams.append("type", params.bookingType)
+      }
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/bookings?${queryParams.toString()}`, {
         method: "GET",
         headers: getAuthHeaders(),
       })
@@ -148,16 +103,28 @@ export function useBookings(params: UseBookingsParams = {}) {
 
       const data: any = await response.json()
 
-      const allBookings = data.data || []
-      setAllBookings(allBookings)
+      // Backend returns paginated data
+      const paginatedBookings = data.data || []
+      setBookings(paginatedBookings)
 
-      // Frontend pagination - we'll filter and paginate locally
+      // Update pagination from backend response
       setPagination({
-        total: allBookings.length,
-        page: params.page || 1,
-        limit: params.limit || 10,
-        totalPages: Math.ceil(allBookings.length / (params.limit || 10)),
+        total: data.total || 0,
+        page: data.page || 1,
+        limit: data.limit || 10,
+        totalPages: data.totalPages || 0,
       })
+
+      // Also fetch all bookings for stats (without pagination)
+      const allResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/bookings?limit=1000`, {
+        method: "GET",
+        headers: getAuthHeaders(),
+      })
+
+      if (allResponse.ok) {
+        const allData = await allResponse.json()
+        setAllBookings(allData.data || [])
+      }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to fetch bookings"
       setError(errorMessage)
@@ -169,38 +136,76 @@ export function useBookings(params: UseBookingsParams = {}) {
     } finally {
       setLoading(false)
     }
-  }, [getAuthHeaders, toast])
+  }, [getAuthHeaders, toast, params.page, params.limit, params.status, params.bookingType])
 
-  const updateBooking = useCallback(
-    async (id: string, data: { status?: string }) => {
+  const updateBookingStatus = useCallback(
+    async (id: string, status: string, notes?: string) => {
       try {
         setUpdatingBooking(id)
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookings/${id}/status`, {
-          method: "PATCH",
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/bookings/${id}/status`, {
+          method: "PUT",
+          headers: getAuthHeaders(),
+          body: JSON.stringify({ status, notes }),
+        })
+
+        if (!response.ok) {
+          const errorResponse = await response.json()
+          throw new Error(errorResponse.message || "Failed to update booking status")
+        }
+
+        const responseData = await response.json()
+        const updatedBooking = responseData.data?.booking || responseData
+
+        // Update both bookings arrays
+        setBookings((prev) => prev.map((booking) => (booking.id === id ? updatedBooking : booking)))
+        setAllBookings((prev) => prev.map((booking) => (booking.id === id ? updatedBooking : booking)))
+
+        toast({
+          title: "Status Updated",
+          description: `Booking status changed to ${status}.`,
+        })
+
+        return updatedBooking
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : "Failed to update booking status"
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: errorMessage,
+        })
+        throw err
+      } finally {
+        setUpdatingBooking(null)
+      }
+    },
+    [getAuthHeaders, toast],
+  )
+
+  const updateBooking = useCallback(
+    async (id: string, data: { description?: string; requirements?: any; location?: string }) => {
+      try {
+        setUpdatingBooking(id)
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/bookings/${id}`, {
+          method: "PUT",
           headers: getAuthHeaders(),
           body: JSON.stringify(data),
         })
 
         if (!response.ok) {
           const errorResponse = await response.json()
-          if (errorResponse.message) {
-            throw new Error(`${errorResponse.message}`)
-          }
-          throw new Error(`Internal Server Error`)
+          throw new Error(errorResponse.message || "Failed to update booking")
         }
 
         const responseData = await response.json()
+        const updatedBooking = responseData.data?.booking || responseData
 
-        // Backend returns updated booking
-        const updatedBooking = responseData.data?.booking
-
-        if (updatedBooking) {
-          setAllBookings((prev) => prev.map((booking) => (booking.id === id ? updatedBooking : booking)))
-        }
+        // Update both bookings arrays
+        setBookings((prev) => prev.map((booking) => (booking.id === id ? updatedBooking : booking)))
+        setAllBookings((prev) => prev.map((booking) => (booking.id === id ? updatedBooking : booking)))
 
         toast({
           title: "Booking Updated",
-          description: `Booking updated successfully.`,
+          description: "Booking has been updated successfully.",
         })
 
         return updatedBooking
@@ -223,7 +228,7 @@ export function useBookings(params: UseBookingsParams = {}) {
     async (id: string) => {
       try {
         setDeletingBooking(id)
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookings/${id}`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/bookings/${id}`, {
           method: "DELETE",
           headers: getAuthHeaders(),
         })
@@ -232,6 +237,8 @@ export function useBookings(params: UseBookingsParams = {}) {
           throw new Error(`Failed to delete booking: ${response.statusText}`)
         }
 
+        // Update both bookings arrays
+        setBookings((prev) => prev.filter((booking) => booking.id !== id))
         setAllBookings((prev) => prev.filter((booking) => booking.id !== id))
 
         toast({
@@ -286,7 +293,6 @@ export function useBookings(params: UseBookingsParams = {}) {
 
   return {
     bookings,
-    filteredBookings,
     allBookings,
     loading,
     updatingBooking,
@@ -294,6 +300,7 @@ export function useBookings(params: UseBookingsParams = {}) {
     error,
     pagination,
     updateBooking,
+    updateBookingStatus, // Added new function for status updates
     deleteBooking,
     getBookingById,
     refetch: fetchBookings,

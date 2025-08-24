@@ -127,7 +127,7 @@ export default function DashboardLayout({
 
         <div className="flex">
           {/* Sidebar */}
-          <nav className="fixed left-0 top-0 w-64 bg-white shadow-sm h-screen overflow-y-auto pt-20">
+          <nav className="fixed left-0 top-0 w-64 bg-white shadow-sm h-screen overflow-y-auto pt-20 z-9">
             <div className="p-6">
               <div className="flex items-center justify-center mb-6 pb-4 border-b">
                 <img
@@ -160,7 +160,7 @@ export default function DashboardLayout({
           </nav>
 
           {/* Main Content */}
-          <main className="flex-1 ml-64 p-6 pt-24">{children}</main>
+          <main className="flex-1 ml-64 p-6 pt-24 z-1">{children}</main>
         </div>
       </div>
     </ProtectedRoute>
