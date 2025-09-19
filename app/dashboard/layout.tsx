@@ -31,10 +31,10 @@ const navigation = [
   { name: "Invitations", href: "/dashboard/invitations", icon: Mail },
   { name: "Contacts", href: "/dashboard/contacts", icon: MessageSquare },
   { name: "Bookings", href: "/dashboard/bookings", icon: Calendar },
-  { name: "Content", href: "/dashboard/content", icon: FileText },
-  { name: "Payments", href: "/dashboard/payments", icon: CreditCard },
-  { name: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
-  { name: "Notifications", href: "/dashboard/notifications", icon: Bell },
+  // { name: "Content", href: "/dashboard/content", icon: FileText },
+  // { name: "Payments", href: "/dashboard/payments", icon: CreditCard },
+  // { name: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
+  // { name: "Notifications", href: "/dashboard/notifications", icon: Bell },
   { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
