@@ -61,11 +61,6 @@ export default function FounderArticlesPage() {
     }
   };
 
-  const handleView = (slug: string) => {
-      // Assuming public route is /articles/:slug
-      window.open(`/articles/${slug}`, '_blank');
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full min-h-[400px]">
@@ -140,11 +135,11 @@ export default function FounderArticlesPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => router.push(`/dashboard/founder/articles/${article.id}`)}>
+                        <DropdownMenuItem onClick={() => router.push(`/dashboard/founder/articles/${article.id}/edit`)}>
                           <Edit className="w-4 h-4 mr-2" />
                           Edit
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleView(article.slug)}>
+                        <DropdownMenuItem onClick={() => router.push(`/dashboard/founder/articles/${article.id}`)}>
                           <Eye className="w-4 h-4 mr-2" />
                           View
                         </DropdownMenuItem>
