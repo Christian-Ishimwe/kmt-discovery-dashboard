@@ -85,7 +85,9 @@ export function ArticleForm({ initialData }: ArticleFormProps) {
         // @ts-ignore
         await articleApi.updateArticle(
           initialData.id,
+          // @ts-ignore
           values,
+          // @ts-ignore
           session.accessToken
         );
         toast({
