@@ -44,6 +44,7 @@ export function useUsers(params: UseUsersParams = {}) {
   })
   const { toast } = useToast()
   const { data: session } = useSession()
+  const accessToken = (session as any)?.accessToken
 
   // Filter and paginate users on frontend
   const filteredUsers = useMemo(() => {
@@ -99,12 +100,11 @@ export function useUsers(params: UseUsersParams = {}) {
 
   // Get auth token from NextAuth session
   const getAuthHeaders = useCallback(() => {
-    const sessionWithToken = session as any
     return {
       'Content-Type': 'application/json',
-      ...(sessionWithToken?.accessToken && { 'Authorization': `Bearer ${sessionWithToken.accessToken}` })
+      ...(accessToken && { 'Authorization': `Bearer ${accessToken}` })
     }
-  }, [session])
+  }, [accessToken])
 
   const fetchUsers = useCallback(async () => {
     try {

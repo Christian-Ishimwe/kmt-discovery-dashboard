@@ -36,15 +36,15 @@ export function useAnalytics(params: UseAnalyticsParams = {}) {
   const [error, setError] = useState<string | null>(null)
   const { toast } = useToast()
   const { data: session } = useSession()
+  const accessToken = (session as any)?.accessToken
 
   // Get auth token from NextAuth session
   const getAuthHeaders = useCallback(() => {
-    const sessionWithToken = session as any
     return {
       'Content-Type': 'application/json',
-      ...(sessionWithToken?.accessToken && { 'Authorization': `Bearer ${sessionWithToken.accessToken}` })
+      ...(accessToken && { 'Authorization': `Bearer ${accessToken}` })
     }
-  }, [session])
+  }, [accessToken])
 
   const fetchAnalytics = useCallback(async () => {
     try {

@@ -8,17 +8,18 @@ export function useArticle(id: string) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { data: session } = useSession();
+  // @ts-ignore
+  const accessToken = session?.accessToken;
 
   const fetchArticle = async () => {
-    // @ts-ignore
-    if (!session?.accessToken || !id) return;
+    if (!accessToken || !id) return;
 
     setLoading(true);
     setError(null);
 
     try {
       // @ts-ignore
-      const data = await articleApi.getArticle(id, session.accessToken);
+      const data = await articleApi.getArticle(id, accessToken);
       console.log("Single Article API Response:", data);
       
       let fetchedArticle: any = data;
@@ -52,10 +53,10 @@ export function useArticle(id: string) {
   };
 
   useEffect(() => {
-    if (session && id) {
+    if (accessToken && id) {
       fetchArticle();
     }
-  }, [session, id]);
+  }, [accessToken, id]);
 
   return { article, loading, error, refetch: fetchArticle };
 }

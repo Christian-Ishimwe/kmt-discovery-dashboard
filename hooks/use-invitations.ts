@@ -33,6 +33,7 @@ export function useInvitations(params: UseInvitationsParams = {}) {
   })
   const { toast } = useToast()
   const { data: session } = useSession()
+  const accessToken = (session as any)?.accessToken
 
   // Filter and paginate invitations on frontend
   const filteredInvitations = useMemo(() => {
@@ -93,12 +94,11 @@ export function useInvitations(params: UseInvitationsParams = {}) {
 
   // Get auth token from NextAuth session
   const getAuthHeaders = useCallback(() => {
-    const sessionWithToken = session as any
     return {
       'Content-Type': 'application/json',
-      ...(sessionWithToken?.accessToken && { 'Authorization': `Bearer ${sessionWithToken.accessToken}` })
+      ...(accessToken && { 'Authorization': `Bearer ${accessToken}` })
     }
-  }, [session])
+  }, [accessToken])
 
   const fetchInvitations = useCallback(async () => {
     try {

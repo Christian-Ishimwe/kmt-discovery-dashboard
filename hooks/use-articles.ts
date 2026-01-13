@@ -15,10 +15,11 @@ export function useArticles({ page = 1, limit = 10, status }: UseArticlesProps =
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { data: session } = useSession();
+  // @ts-ignore
+  const accessToken = session?.accessToken;
 
   const fetchArticles = async () => {
-    // @ts-ignore
-    if (!session?.accessToken) {
+    if (!accessToken) {
       setError("Authentication required");
       return;
     }
@@ -28,7 +29,7 @@ export function useArticles({ page = 1, limit = 10, status }: UseArticlesProps =
 
     try {
       // @ts-ignore
-      const data = await articleApi.getMyArticles({ page, limit, status }, session.accessToken);
+      const data:any = await articleApi.getMyArticles({ page, limit, status }, accessToken);
       console.log("API Response:", data);
 
       let fetchedArticles: Article[] = [];
@@ -57,10 +58,10 @@ export function useArticles({ page = 1, limit = 10, status }: UseArticlesProps =
   };
 
   useEffect(() => {
-    if (session) {
+    if (accessToken) {
       fetchArticles();
     }
-  }, [session, page, limit, status]);
+  }, [accessToken, page, limit, status]);
 
   const refetch = () => {
     fetchArticles();
@@ -69,7 +70,7 @@ export function useArticles({ page = 1, limit = 10, status }: UseArticlesProps =
   const createArticle = async (data: CreateArticleData): Promise<Article> => {
     try {
       // @ts-ignore
-      const newArticle = await articleApi.createArticle(data, session?.accessToken);
+      const newArticle = await articleApi.createArticle(data, accessToken);
       setArticles(prev => [newArticle, ...prev]);
       return newArticle;
     } catch (err) {
@@ -82,7 +83,7 @@ export function useArticles({ page = 1, limit = 10, status }: UseArticlesProps =
   const updateArticle = async (id: string, data: UpdateArticleData): Promise<Article> => {
     try {
       // @ts-ignore
-      const updatedArticle = await articleApi.updateArticle(id, data, session?.accessToken);
+      const updatedArticle = await articleApi.updateArticle(id, data, accessToken);
       setArticles(prev => prev.map(article =>
         article.id === id ? updatedArticle : article
       ));
@@ -97,7 +98,7 @@ export function useArticles({ page = 1, limit = 10, status }: UseArticlesProps =
   const deleteArticle = async (id: string): Promise<void> => {
     try {
       // @ts-ignore
-      await articleApi.deleteArticle(id, session?.accessToken);
+      await articleApi.deleteArticle(id, accessToken);
       setArticles(prev => prev.filter(article => article.id !== id));
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete article';
@@ -123,9 +124,11 @@ export function useArticle(id: string) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { data: session } = useSession();
+  // @ts-ignore
+  const accessToken = session?.accessToken;
 
   const fetchArticle = async () => {
-    if (!session || !id) return;
+    if (!accessToken || !id) return;
 
     setLoading(true);
     setError(null);
@@ -134,7 +137,7 @@ export function useArticle(id: string) {
       // For now, we'll fetch from the list and find by id
       // In a real app, you'd have a getArticle endpoint
       // @ts-ignore
-      const data = await articleApi.getMyArticles({}, session.accessToken);
+      const data = await articleApi.getMyArticles({}, accessToken);
       const foundArticle = data.articles.find(a => a.id === id);
       if (foundArticle) {
         setArticle(foundArticle);
@@ -150,13 +153,15 @@ export function useArticle(id: string) {
   };
 
   useEffect(() => {
-    fetchArticle();
-  }, [session, id]);
+    if (accessToken) {
+      fetchArticle();
+    }
+  }, [accessToken, id]);
 
   const updateArticle = async (data: UpdateArticleData): Promise<Article> => {
     try {
       // @ts-ignore
-      const updatedArticle = await articleApi.updateArticle(id, data, session?.accessToken);
+      const updatedArticle = await articleApi.updateArticle(id, data, accessToken);
       setArticle(updatedArticle);
       return updatedArticle;
     } catch (err) {

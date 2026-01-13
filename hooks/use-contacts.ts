@@ -14,10 +14,10 @@ export function useContacts({ page = 1, limit = 10, status }: UseContactsProps =
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { data: session } = useSession();
+  const accessToken = (session as any)?.accessToken;
 
   const fetchContacts = async () => {
-    // @ts-ignore
-    if (!session?.accessToken) {
+    if (!accessToken) {
       setError("Authentication required");
       return;
     }
@@ -37,8 +37,7 @@ export function useContacts({ page = 1, limit = 10, status }: UseContactsProps =
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/contacts?${params}`, {
         headers: {
-            // @ts-ignore   
-          'Authorization': `Bearer ${session.accessToken}`,
+          'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
       });
@@ -59,8 +58,10 @@ export function useContacts({ page = 1, limit = 10, status }: UseContactsProps =
   };
 
   useEffect(() => {
-    fetchContacts();
-  }, [session, page, limit, status]);
+    if (accessToken) {
+        fetchContacts();
+    }
+  }, [accessToken, page, limit, status]);
 
   const refetch = () => {
     fetchContacts();
@@ -80,10 +81,10 @@ export function useContactStats() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { data: session } = useSession();
+  const accessToken = (session as any)?.accessToken;
 
   const fetchStats = async () => {
-    // @ts-ignore 
-    if (!session?.accessToken) {
+    if (!accessToken) {
       setError("Authentication required");
       return;
     }
@@ -94,8 +95,7 @@ export function useContactStats() {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/contacts/stats`, {
         headers: {
-            // @ts-ignore 
-          'Authorization': `Bearer ${session.accessToken}`,
+          'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
       });
@@ -115,9 +115,10 @@ export function useContactStats() {
   };
 
   useEffect(() => {
-    fetchStats();
-  }, [session]);
-
+    if (accessToken) {
+      fetchStats();
+    }
+  }, [accessToken]);
   const refetch = () => {
     fetchStats();
   };
