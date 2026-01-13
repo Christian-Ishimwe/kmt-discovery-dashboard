@@ -44,7 +44,7 @@ class ArticleApi {
       headers['Authorization'] = `Bearer ${accessToken}`;
     }
 
-    const response = await fetch(`${this.baseUrl}/${id}`, {
+    const response = await fetch(`${this.baseUrl}/admin/${id}`, {
       headers,
     });
 
@@ -78,7 +78,7 @@ class ArticleApi {
       headers['Authorization'] = `Bearer ${accessToken}`;
     }
 
-    const response = await fetch(`${this.baseUrl}/${id}`, {
+    const response = await fetch(`${this.baseUrl}/admin/${id}`, {
       method: 'PUT',
       headers,
       body: JSON.stringify(data),
@@ -96,7 +96,7 @@ class ArticleApi {
       headers['Authorization'] = `Bearer ${accessToken}`;
     }
 
-    const response = await fetch(`${this.baseUrl}/${id}`, {
+    const response = await fetch(`${this.baseUrl}/admin/${id}`, {
       method: 'DELETE',
       headers,
     });

@@ -7,7 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import Link from "next/link"; 
+import Link from "next/link";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 export default function ArticleDetailsPage() {
   const params = useParams<{ id: string }>();
@@ -39,14 +41,18 @@ export default function ArticleDetailsPage() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Article Details</h1>
-            <p className="text-muted-foreground">View article details and status.</p>
+            <h1 className="text-3xl font-bold tracking-tight">
+              Article Details
+            </h1>
+            <p className="text-muted-foreground">
+              View article details and status.
+            </p>
           </div>
         </div>
         <Link href={`/dashboard/founder/articles/${params.id}/edit`}>
           <Button>
-             <Edit className="mr-2 h-4 w-4" />
-             Edit Article
+            <Edit className="mr-2 h-4 w-4" />
+            Edit Article
           </Button>
         </Link>
       </div>
@@ -63,8 +69,10 @@ export default function ArticleDetailsPage() {
                   {article.excerpt}
                 </div>
               )}
-              <div className="prose dark:prose-invert max-w-none">
-                 <div className="whitespace-pre-wrap">{article.content}</div>
+              <div className="prose prose-stone dark:prose-invert max-w-none">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {article.content}
+                </ReactMarkdown>
               </div>
             </CardContent>
           </Card>
@@ -77,29 +85,43 @@ export default function ArticleDetailsPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <span className="text-sm font-medium text-muted-foreground">Status</span>
+                <span className="text-sm font-medium text-muted-foreground">
+                  Status
+                </span>
                 <div className="mt-1">
-                  <Badge variant={article.status === "PUBLISHED" ? "default" : "secondary"}>
+                  <Badge
+                    variant={
+                      article.status === "PUBLISHED" ? "default" : "secondary"
+                    }
+                  >
                     {article.status}
                   </Badge>
                 </div>
               </div>
               <div>
-                <span className="text-sm font-medium text-muted-foreground">Access Level</span>
+                <span className="text-sm font-medium text-muted-foreground">
+                  Access Level
+                </span>
                 <div className="mt-1 flex items-center gap-2">
                   <Lock className="h-4 w-4 text-muted-foreground" />
                   <span>{article.accessLevel}</span>
                 </div>
               </div>
               <div>
-                <span className="text-sm font-medium text-muted-foreground">Created At</span>
+                <span className="text-sm font-medium text-muted-foreground">
+                  Created At
+                </span>
                 <div className="mt-1 flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span>{format(new Date(article.createdAt), "MMM d, yyyy")}</span>
+                  <span>
+                    {format(new Date(article.createdAt), "MMM d, yyyy")}
+                  </span>
                 </div>
               </div>
               <div>
-                <span className="text-sm font-medium text-muted-foreground">Slug</span>
+                <span className="text-sm font-medium text-muted-foreground">
+                  Slug
+                </span>
                 <div className="mt-1 flex items-center gap-2 font-mono text-sm bg-muted p-1 rounded break-all">
                   <Globe className="h-3 w-3" />
                   {article.slug}
