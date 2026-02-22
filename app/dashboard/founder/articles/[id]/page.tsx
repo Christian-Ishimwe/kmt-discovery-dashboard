@@ -8,8 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import { ArticleContentRenderer } from "@/components/article-content-renderer";
 
 export default function ArticleDetailsPage() {
   const params = useParams<{ id: string }>();
@@ -69,11 +68,7 @@ export default function ArticleDetailsPage() {
                   {article.excerpt}
                 </div>
               )}
-              <div className="prose prose-stone dark:prose-invert max-w-none">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {article.content}
-                </ReactMarkdown>
-              </div>
+              <ArticleContentRenderer content={article.content} />
             </CardContent>
           </Card>
         </div>

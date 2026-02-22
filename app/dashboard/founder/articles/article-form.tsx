@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { MarkdownEditor } from "@/components/markdown-editor";
+import TiptapEditor from "@/components/tiptap-editor";
 import { articleApi } from "@/lib/api-article";
 import { Article, ArticleStatus, AccessLevel } from "@/types/article";
 import { Loader2 } from "lucide-react";
@@ -48,7 +48,7 @@ export function ArticleForm({ initialData }: ArticleFormProps) {
   const { data: session } = useSession();
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
-  
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -88,7 +88,7 @@ export function ArticleForm({ initialData }: ArticleFormProps) {
           // @ts-ignore
           values,
           // @ts-ignore
-          session.accessToken
+          session.accessToken,
         );
         toast({
           title: "Article updated",
@@ -239,9 +239,9 @@ export function ArticleForm({ initialData }: ArticleFormProps) {
           name="content"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Content (Markdown)</FormLabel>
+              <FormLabel>Content</FormLabel>
               <FormControl>
-                <MarkdownEditor value={field.value} onChange={field.onChange} />
+                <TiptapEditor content={field.value} onChange={field.onChange} />
               </FormControl>
               <FormMessage />
             </FormItem>

@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { X, Plus } from "lucide-react";
-import Editor from "./editor";
+import TiptapEditor from "./tiptap-editor";
 import {
   Article,
   ArticleStatus,
@@ -57,7 +57,7 @@ export default function ArticleDialog({
   onSave,
   loading = false,
 }: ArticleDialogProps) {
-  const [content, setContent] = useState<any>(null);
+  const [content, setContent] = useState<string>("");
   const [categories, setCategories] = useState<string[]>([]);
   const [newCategory, setNewCategory] = useState("");
 
@@ -89,8 +89,7 @@ export default function ArticleDialog({
         status: article.status,
         accessLevel: article.accessLevel,
       });
-      setContent(article.content);
-      setCategories(article.categories?.map((c) => c.name) || []);
+      setContent(article.content || "");
     } else {
       reset({
         title: "",
@@ -98,7 +97,7 @@ export default function ArticleDialog({
         status: ArticleStatus.DRAFT,
         accessLevel: AccessLevel.FREE,
       });
-      setContent(null);
+      setContent("");
       setCategories([]);
     }
   }, [article, reset]);
@@ -108,11 +107,10 @@ export default function ArticleDialog({
       await onSave({
         ...data,
         content,
-        categories,
       });
       onOpenChange(false);
       reset();
-      setContent(null);
+      setContent("");
       setCategories([]);
     } catch (error) {
       console.error("Failed to save article:", error);
@@ -130,8 +128,8 @@ export default function ArticleDialog({
     setCategories(categories.filter((c) => c !== category));
   };
 
-  const handleContentChange = (data: any) => {
-    setContent(data);
+  const handleContentChange = (html: string) => {
+    setContent(html);
   };
 
   return (
@@ -258,9 +256,9 @@ export default function ArticleDialog({
 
             <div>
               <Label>Content</Label>
-              <div className="border rounded-md p-4 min-h-[400px]">
-                <Editor
-                  data={content}
+              <div className="min-h-[400px]">
+                <TiptapEditor
+                  content={content}
                   onChange={handleContentChange}
                   placeholder="Start writing your article..."
                 />
@@ -281,8 +279,8 @@ export default function ArticleDialog({
               {loading
                 ? "Saving..."
                 : article
-                ? "Update Article"
-                : "Create Article"}
+                  ? "Update Article"
+                  : "Create Article"}
             </Button>
           </DialogFooter>
         </form>
