@@ -68,10 +68,11 @@ import {
   Info,
   CheckCircle,
   AlertTriangle,
-  Coins
+  Coins,
 } from "lucide-react";
 import { useEvents } from "@/hooks/use-events";
 import { EventDetailsDialog } from "@/components/event-details-dialog";
+import { convertGoogleDriveUrl } from "@/lib/utils";
 import type {
   Event,
   CreateEventData,
@@ -182,7 +183,7 @@ export default function EventsPage() {
           addSuffix: true,
         }),
       })),
-    [filteredEvents]
+    [filteredEvents],
   );
 
   const stats = useMemo(
@@ -193,10 +194,10 @@ export default function EventsPage() {
       completed: eventsByStatus.get(EventStatusEnum.COMPLETED)?.length || 0,
       totalAttendees: events.reduce(
         (sum, event) => sum + event.attendeeCount,
-        0
+        0,
       ),
     }),
-    [events, eventsByStatus]
+    [events, eventsByStatus],
   );
 
   const handleCreate = () => {
@@ -711,7 +712,9 @@ export default function EventsPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="imageUrl">Image URL</Label>
+                <Label htmlFor="imageUrl">
+                  Image URL (Google Drive links auto-converted)
+                </Label>
                 <Input
                   id="imageUrl"
                   type="url"
@@ -722,6 +725,15 @@ export default function EventsPage() {
                       imageUrl: e.target.value,
                     }))
                   }
+                  onBlur={(e) => {
+                    const convertedUrl = convertGoogleDriveUrl(e.target.value);
+                    if (convertedUrl !== e.target.value) {
+                      setFormData((prev) => ({
+                        ...prev,
+                        imageUrl: convertedUrl,
+                      }));
+                    }
+                  }}
                   placeholder="https://..."
                 />
               </div>

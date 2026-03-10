@@ -22,6 +22,7 @@ export interface Article {
   createdAt: string;
   updatedAt: string;
   authorId: string;
+  thumbnail?: string;
   author: {
     id: string;
     name: string;

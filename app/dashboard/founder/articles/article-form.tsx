@@ -29,6 +29,7 @@ import { articleApi } from "@/lib/api-article";
 import { Article, ArticleStatus, AccessLevel } from "@/types/article";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { convertGoogleDriveUrl } from "@/lib/utils";
 
 const formSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -37,6 +38,7 @@ const formSchema = z.object({
   accessLevel: z.nativeEnum(AccessLevel),
   content: z.string().min(1, "Content is required"),
   excerpt: z.string().optional(),
+  thumbnail: z.string().optional(),
 });
 
 interface ArticleFormProps {
@@ -58,6 +60,7 @@ export function ArticleForm({ initialData }: ArticleFormProps) {
       accessLevel: initialData?.accessLevel || AccessLevel.FREE,
       content: initialData?.content ? String(initialData.content) : "",
       excerpt: initialData?.excerpt || "",
+      thumbnail: initialData?.thumbnail || "",
     },
   });
 
@@ -71,6 +74,7 @@ export function ArticleForm({ initialData }: ArticleFormProps) {
         accessLevel: initialData.accessLevel || AccessLevel.FREE,
         content: initialData.content ? String(initialData.content) : "",
         excerpt: initialData.excerpt || "",
+        thumbnail: initialData.thumbnail || "",
       });
     }
   }, [initialData, form]);
@@ -156,6 +160,41 @@ export function ArticleForm({ initialData }: ArticleFormProps) {
                 </FormControl>
                 <FormDescription>
                   The URL-friendly version of the title.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <FormField
+            control={form.control}
+            name="thumbnail"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Thumbnail URL</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    onChange={(e) => {
+                      const convertedUrl = convertGoogleDriveUrl(
+                        e.target.value,
+                      );
+                      field.onChange(convertedUrl);
+                    }}
+                    onBlur={(e) => {
+                      const convertedUrl = convertGoogleDriveUrl(
+                        e.target.value,
+                      );
+                      if (convertedUrl !== e.target.value) {
+                        form.setValue("thumbnail", convertedUrl);
+                      }
+                    }}
+                  />
+                </FormControl>
+                <FormDescription>
+                  The Thumbnail URL (Google Drive links will be auto-converted)
                 </FormDescription>
                 <FormMessage />
               </FormItem>

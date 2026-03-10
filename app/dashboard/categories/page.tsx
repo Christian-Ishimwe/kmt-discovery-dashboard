@@ -45,6 +45,7 @@ import { Loader2, Pencil, Plus, RefreshCw, Trash2, Info } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 import { useCategories } from "@/hooks/use-categories";
+import { convertGoogleDriveUrl } from "@/lib/utils";
 import type { Category } from "@/types/category";
 
 interface CategoryFormState {
@@ -116,7 +117,7 @@ export default function CategoriesPage() {
             })
           : "—",
       })),
-    [categories]
+    [categories],
   );
 
   const handleCreate = () => {
@@ -192,7 +193,6 @@ export default function CategoriesPage() {
             <Badge className="w-fit bg-red-100 text-red-700 border-red-200">
               Categories Hub
             </Badge>
-           
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
@@ -437,7 +437,9 @@ export default function CategoriesPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="backgroundUrl">Background image URL</Label>
+                <Label htmlFor="backgroundUrl">
+                  Background image URL (Google Drive links auto-converted)
+                </Label>
                 <Input
                   id="backgroundUrl"
                   value={formData.backgroundUrl}
@@ -447,6 +449,17 @@ export default function CategoriesPage() {
                       backgroundUrl: event.target.value,
                     }))
                   }
+                  onBlur={(event) => {
+                    const convertedUrl = convertGoogleDriveUrl(
+                      event.target.value,
+                    );
+                    if (convertedUrl !== event.target.value) {
+                      setFormData((prev) => ({
+                        ...prev,
+                        backgroundUrl: convertedUrl,
+                      }));
+                    }
+                  }}
                   placeholder="https://..."
                 />
               </div>

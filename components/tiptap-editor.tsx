@@ -32,7 +32,7 @@ import {
   Upload,
 } from "lucide-react";
 import { useEffect, useCallback, useState, useRef } from "react";
-import { cn } from "@/lib/utils";
+import { cn, convertGoogleDriveUrl } from "@/lib/utils";
 import mammoth from "mammoth";
 
 interface TiptapEditorProps {
@@ -124,12 +124,55 @@ export default function TiptapEditor({
   const addImage = useCallback(() => {
     if (!editor) return;
 
-    const url = window.prompt("Image URL");
+    const url = window.prompt(
+      "Image URL (Google Drive links will be auto-converted)",
+    );
 
     if (url) {
-      editor.chain().focus().setImage({ src: url }).run();
+      const convertedUrl = convertGoogleDriveUrl(url);
+      editor.chain().focus().setImage({ src: convertedUrl }).run();
     }
   }, [editor]);
+
+  const handleImageUpload = useCallback(
+    async (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file || !editor) return;
+
+      // Check if it's an image file
+      if (!file.type.startsWith("image/")) {
+        alert("Please upload an image file");
+        return;
+      }
+
+      try {
+        // Convert image to base64
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const base64 = e.target?.result as string;
+          editor.chain().focus().setImage({ src: base64 }).run();
+        };
+        reader.readAsDataURL(file);
+      } catch (error) {
+        console.error("Error uploading image:", error);
+        alert("Failed to upload image. Please try again.");
+      }
+
+      // Reset file input
+      if (event.target) {
+        event.target.value = "";
+      }
+    },
+    [editor],
+  );
+
+  const triggerImageUpload = useCallback(() => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.onchange = handleImageUpload as any;
+    input.click();
+  }, [handleImageUpload]);
 
   const handleFileUpload = useCallback(
     async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -442,9 +485,30 @@ export default function TiptapEditor({
                 size="sm"
                 onClick={addImage}
                 className="h-8 w-8 p-0"
-                title="Insert Image"
+                title="Insert Image URL"
               >
                 <ImageIcon className="h-4 w-4" />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={triggerImageUpload}
+                className="h-8 w-8 p-0"
+                title="Upload Image"
+              >
+                <Upload className="h-4 w-4" />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={triggerFileUpload}
+                className="h-8 px-2"
+                title="Import from Word (.docx)"
+              >
+                <Upload className="h-4 w-4 mr-1" />
+                <span className="text-xs">Word</span>
               </Button>
             </div>
 
@@ -515,6 +579,15 @@ export default function TiptapEditor({
           </div>
         </div>
       </div>
+
+      {/* Hidden file input for .docx upload */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        onChange={handleFileUpload}
+        className="hidden"
+      />
     </div>
   );
 }
